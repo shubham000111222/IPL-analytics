@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sqlite3
+import sys
 from pathlib import Path
 from typing import Dict, List, Tuple
 
@@ -37,9 +38,53 @@ def get_db_path() -> Path:
     return get_project_root() / "data" / "ipl.db"
 
 
+def database_has_tables(db_path: Path) -> bool:
+    """Return True if the SQLite DB exists and has matches/deliveries tables."""
+    if not db_path.exists():
+        return False
+    with sqlite3.connect(db_path) as conn:
+        rows = conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
+    tables = {row[0] for row in rows}
+    return {"matches", "deliveries"}.issubset(tables)
+
+
+def ensure_database() -> None:
+    """Create the SQLite database from CSVs if missing."""
+    db_path = get_db_path()
+    if database_has_tables(db_path):
+        return
+
+    root = get_project_root()
+    data_dir = root / "data" / "raw"
+    matches_path = data_dir / "matches.csv"
+    deliveries_path = data_dir / "deliveries.csv"
+
+    if not matches_path.exists() or not deliveries_path.exists():
+        st.error("Missing data/raw CSVs. Add matches.csv and deliveries.csv to data/raw.")
+        st.stop()
+
+    if str(root) not in sys.path:
+        sys.path.insert(0, str(root))
+
+    from src.data.load_data import (
+        create_sqlite_db,
+        merge_deliveries_matches,
+        prepare_deliveries,
+        prepare_matches,
+    )
+
+    matches = pd.read_csv(matches_path)
+    deliveries = pd.read_csv(deliveries_path)
+    matches = prepare_matches(matches)
+    deliveries = prepare_deliveries(deliveries)
+    deliveries = merge_deliveries_matches(deliveries, matches)
+    create_sqlite_db(matches, deliveries, db_path)
+
+
 @st.cache_data
 def load_table(table: str) -> pd.DataFrame:
     """Load a table from SQLite into a DataFrame."""
+    ensure_database()
     db_path = get_db_path()
     with sqlite3.connect(db_path) as conn:
         return pd.read_sql_query(f"SELECT * FROM {table}", conn)
