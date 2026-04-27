@@ -170,6 +170,22 @@ FROM over_cum;
    streamlit run dashboard/app.py
    ```
 
+## Deployment Guide
+
+### Streamlit Community Cloud (recommended)
+1. Push the repo to GitHub (already done).
+2. Go to https://share.streamlit.io and sign in with GitHub.
+3. Click "New app" and set:
+    - Repository: shubham000111222/IPL-analytics
+    - Branch: main
+    - Main file path: [dashboard/app.py](dashboard/app.py)
+4. Click "Deploy".
+
+### Common Deploy Checks
+- Ensure dependencies are listed in [requirements.txt](requirements.txt).
+- Keep the CSVs in [data/raw](data/raw) so the app can load them offline.
+- If the app fails on first run, restart it after the initial build.
+
 ## Dataset
 Kaggle IPL dataset (2008-2024/2025): https://www.kaggle.com/datasets/patrickb1912/ipl-complete-dataset-20082020/data
 
