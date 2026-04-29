@@ -1,12 +1,23 @@
-# IPL Analytics (2008-2024)
+<div align="center">
 
-A portfolio-ready analytics suite that transforms IPL match and ball-by-ball data into SQL insights, Python analysis, and a Streamlit dashboard.
+# 🏏 IPL Analytics (2008–2024)
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB)
-![Pandas](https://img.shields.io/badge/Pandas-Data-150458)
-![SQLite](https://img.shields.io/badge/SQLite-DB-003B57)
-![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B)
-![CI-CD](https://github.com/shubham000111222/IPL-analytics/actions/workflows/ci-cd.yml/badge.svg)
+[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![Pandas](https://img.shields.io/badge/Pandas-2.0+-150458?style=for-the-badge&logo=pandas&logoColor=white)](https://pandas.pydata.org)
+[![SQLite](https://img.shields.io/badge/SQLite-3-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://sqlite.org)
+[![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://streamlit.io)
+[![Scikit Learn](https://img.shields.io/badge/Scikit--Learn-ML-F7931E?style=for-the-badge&logo=scikit-learn&logoColor=white)](https://scikit-learn.org)
+[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
+
+*End-to-end cricket analytics: SQL window functions · Python EDA ·
+20 visualisations · 8-page Streamlit dashboard · Win probability model*
+
+[View Dashboard](#how-to-run) · [Key Insights](#key-insights) ·
+[Visualisations](#visualisation-gallery) · [SQL Highlights](#sql-highlights)
+
+</div>
+
+---
 
 ## Problem Statement
 Cricket boards and franchises need evidence-backed decisions on player selection, match strategy, and venue tactics. This project answers key questions on batting consistency, bowling pressure, and team strategy across IPL seasons. It combines match metadata with ball-by-ball events to reveal phase-wise performance, toss impact, and venue trends. The results support scouting, tactical planning, and opponent-specific preparation.
@@ -271,3 +282,9 @@ Kaggle IPL dataset (2008-2024/2025): https://www.kaggle.com/datasets/patrickb191
 **Shubham Kumar** · NIT Delhi, CSE (3rd Year)  
 [GitHub](https://github.com/shubham000111222) · [Portfolio](https://data-science-portfolio-three-olive.vercel.app)
 [LinkedIn](https://linkedin.com/in/shubham-kumar-288b7437b)
+
+---
+
+## Topics
+`python` `data-analysis` `ipl` `cricket` `sql` `sqlite` `streamlit` 
+`pandas` `matplotlib` `seaborn` `machine-learning` `eda` `sports-analytics`
