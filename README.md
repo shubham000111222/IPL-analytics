@@ -6,6 +6,7 @@ A portfolio-ready analytics suite that transforms IPL match and ball-by-ball dat
 ![Pandas](https://img.shields.io/badge/Pandas-Data-150458)
 ![SQLite](https://img.shields.io/badge/SQLite-DB-003B57)
 ![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B)
+![CI-CD](https://github.com/shubham000111222/IPL-analytics/actions/workflows/ci-cd.yml/badge.svg)
 
 ## Problem Statement
 Cricket boards and franchises need evidence-backed decisions on player selection, match strategy, and venue tactics. This project answers key questions on batting consistency, bowling pressure, and team strategy across IPL seasons. It combines match metadata with ball-by-ball events to reveal phase-wise performance, toss impact, and venue trends. The results support scouting, tactical planning, and opponent-specific preparation.
@@ -243,6 +244,19 @@ FROM over_cum;
 - Ensure dependencies are listed in [requirements.txt](requirements.txt).
 - Keep the CSVs in [data/raw](data/raw) so the app can load them offline.
 - If the app fails on first run, restart it after the initial build.
+
+## CI/CD Pipeline
+- Workflow file: [.github/workflows/ci-cd.yml](.github/workflows/ci-cd.yml)
+- Trigger: push/PR to main and manual dispatch.
+- CI stage:
+    - Installs dependencies from [requirements.txt](requirements.txt).
+    - Performs syntax checks with compileall.
+    - Rebuilds SQLite DB from [data/raw](data/raw).
+    - Runs analysis scripts and regenerates plots.
+    - Uploads [data/ipl.db](data/ipl.db) and [results](results) images as workflow artifacts.
+- CD stage (main branch pushes only):
+    - Downloads generated artifacts.
+    - Publishes or updates a GitHub release tagged latest with the refreshed DB and plots.
 
 ## Dataset
 Kaggle IPL dataset (2008-2024/2025): https://www.kaggle.com/datasets/patrickb1912/ipl-complete-dataset-20082020/data
