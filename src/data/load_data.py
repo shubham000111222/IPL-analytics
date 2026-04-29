@@ -86,6 +86,8 @@ def detect_and_rename_matches(df: pd.DataFrame) -> pd.DataFrame:
         rename_map["start_date"] = "date"
     if "season_year" in df.columns and "season" not in df.columns:
         rename_map["season_year"] = "season"
+    if "year" in df.columns and "season" not in df.columns:
+        rename_map["year"] = "season"
 
     df = df.rename(columns=rename_map)
 
@@ -107,10 +109,26 @@ def detect_and_rename_deliveries(df: pd.DataFrame) -> pd.DataFrame:
         rename_map["id"] = "match_id"
     if "batter" in df.columns and "batsman" not in df.columns:
         rename_map["batter"] = "batsman"
+    if "striker" in df.columns and "batsman" not in df.columns:
+        rename_map["striker"] = "batsman"
     if "ball_number" in df.columns and "ball" not in df.columns:
         rename_map["ball_number"] = "ball"
+    if "runs_off_bat" in df.columns and "batsman_runs" not in df.columns:
+        rename_map["runs_off_bat"] = "batsman_runs"
+    if "wicket_player_dismissed" in df.columns and "player_dismissed" not in df.columns:
+        rename_map["wicket_player_dismissed"] = "player_dismissed"
+    if "wicket_type" in df.columns and "dismissal_kind" not in df.columns:
+        rename_map["wicket_type"] = "dismissal_kind"
+    if "extras_type" in df.columns and "extra_runs" not in df.columns:
+        if pd.api.types.is_numeric_dtype(df["extras_type"]):
+            rename_map["extras_type"] = "extra_runs"
+        else:
+            rename_map["extras_type"] = "extra_type"
 
     df = df.rename(columns=rename_map)
+
+    if "extra_runs" not in df.columns and {"total_runs", "batsman_runs"}.issubset(df.columns):
+        df["extra_runs"] = df["total_runs"].fillna(0) - df["batsman_runs"].fillna(0)
 
     if "match_id" not in df.columns:
         raise KeyError("deliveries.csv must contain a match identifier column")
@@ -169,6 +187,8 @@ def prepare_deliveries(df: pd.DataFrame) -> pd.DataFrame:
     df = ensure_columns(
         df,
         {
+            "extra_runs": 0,
+            "extra_type": np.nan,
             "wide_runs": 0,
             "noball_runs": 0,
             "bye_runs": 0,
