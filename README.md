@@ -11,19 +11,27 @@ A portfolio-ready analytics suite that transforms IPL match and ball-by-ball dat
 Cricket boards and franchises need evidence-backed decisions on player selection, match strategy, and venue tactics. This project answers key questions on batting consistency, bowling pressure, and team strategy across IPL seasons. It combines match metadata with ball-by-ball events to reveal phase-wise performance, toss impact, and venue trends. The results support scouting, tactical planning, and opponent-specific preparation.
 
 ## Key Insights
-- Batsmen with tenure > 5 seasons show 138.4% higher variance in scoring than shorter-tenure peers.
-- Teams winning the toss chose to field 78.19% of the time post-2016.
-- Death over economy below 9.29 correlates with a 27.63 percentage-point higher win rate.
+- Batsmen with tenure > 5 seasons show 76.97% higher variance in scoring than shorter-tenure peers.
+- Teams winning the toss chose to field 75.10% of the time post-2016.
+- Death over economy below 9.29 correlates with a 27.11 percentage-point higher win rate.
 - Powerplay scores for winning teams are 5.71 runs higher on average.
 - Chasing success rate drops to 12.59% when required run rate exceeds 14.
 - Arun Jaitley Stadium, Delhi has the highest first-innings average of 199.06 runs.
+
+## Advanced Insights
+- Anchors: KD Karthik, MS Dhoni, RV Uthappa, AT Rayudu, RA Jadeja, AM Rahane, MK Pandey, G Gambhir.
+- Aggressors: RG Sharma, V Kohli, S Dhawan, SK Raina, DA Warner, KA Pollard, AB de Villiers, SV Samson.
+- Win probability model accuracy: 0.647 (top features: pp_wickets_lost -0.56, powerplay_score +0.29, batting_first -0.22).
+- Score predictor R2: 0.502.
+- Most lopsided head-to-head record: Chennai Super Kings vs Sunrisers Hyderabad (71.4% over 21 matches).
+- Biggest upset in IPL history: 2014 - Delhi Capitals over Kolkata Knight Riders at Dubai International Cricket Stadium (54.5 pp gap, margin 4).
 
 ## Tech Stack
 
 | Layer | Tools |
 | --- | --- |
 | Language | Python |
-| Data | Pandas, NumPy |
+| Data | Pandas, NumPy, scikit-learn |
 | SQL | SQLite |
 | Viz | Matplotlib, Seaborn, Plotly |
 | App | Streamlit |
@@ -141,6 +149,56 @@ FROM over_cum;
 ![IPL Dynasty Chart](results/ipl_dynasty_chart.png)
 ![Batsman Consistency Scatter](results/batsman_consistency_scatter.png)
 ![Death Over Specialists](results/death_over_specialists.png)
+
+## Visualisation Gallery
+
+<table>
+    <tr>
+        <td><img src="results/top_run_scorers.png" width="400"/></td>
+        <td><img src="results/top_wicket_takers.png" width="400"/></td>
+    </tr>
+    <tr>
+        <td><img src="results/strike_rate_phase_heatmap.png" width="400"/></td>
+        <td><img src="results/economy_phase_heatmap.png" width="400"/></td>
+    </tr>
+    <tr>
+        <td><img src="results/toss_win_match_win.png" width="400"/></td>
+        <td><img src="results/venue_run_rates.png" width="400"/></td>
+    </tr>
+    <tr>
+        <td><img src="results/season_trends.png" width="400"/></td>
+        <td><img src="results/ipl_dynasty_chart.png" width="400"/></td>
+    </tr>
+    <tr>
+        <td><img src="results/batsman_consistency_scatter.png" width="400"/></td>
+        <td><img src="results/death_over_specialists.png" width="400"/></td>
+    </tr>
+    <tr>
+        <td><img src="results/batting_clusters.png" width="400"/></td>
+        <td><img src="results/matchup_matrix.png" width="400"/></td>
+    </tr>
+    <tr>
+        <td><img src="results/chasing_success.png" width="400"/></td>
+        <td><img src="results/toss_trend.png" width="400"/></td>
+    </tr>
+    <tr>
+        <td><img src="results/run_rate_pattern.png" width="400"/></td>
+        <td><img src="results/win_factors.png" width="400"/></td>
+    </tr>
+    <tr>
+        <td><img src="results/score_predictor.png" width="400"/></td>
+        <td><img src="results/player_radar.png" width="400"/></td>
+    </tr>
+    <tr>
+        <td><img src="results/wicket_types.png" width="400"/></td>
+        <td><img src="results/h2h_matrix.png" width="400"/></td>
+    </tr>
+</table>
+
+## Methodology
+- Anchor vs Aggressor clusters use average runs, strike rate, dot-ball%, and boundary% with KMeans (2 clusters).
+- Win probability model uses a logistic regression with powerplay score, wickets lost, toss, batting order, and venue averages.
+- Limitations: data gaps, no ball-tracking data, and no player auction price context.
 
 ## How to Run
 

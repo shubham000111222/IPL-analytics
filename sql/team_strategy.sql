@@ -253,3 +253,193 @@ SELECT
     wickets_per_match - LAG(wickets_per_match) OVER (PARTITION BY team ORDER BY season) AS wickets_yoy
 FROM combined
 ORDER BY team, season;
+
+-- name: Chasing Success Rate by Target Range
+-- Business question: How does target size affect chase success?
+WITH innings_totals AS (
+    SELECT match_id, inning, batting_team, SUM(total_runs) AS runs
+    FROM deliveries
+    GROUP BY match_id, inning, batting_team
+), targets AS (
+    SELECT match_id, runs + 1 AS target
+    FROM innings_totals
+    WHERE inning = 1
+), chasing AS (
+    SELECT match_id, batting_team AS chasing_team
+    FROM innings_totals
+    WHERE inning = 2
+)
+SELECT
+    CASE
+        WHEN t.target BETWEEN 140 AND 150 THEN '140-150'
+        WHEN t.target BETWEEN 151 AND 160 THEN '151-160'
+        WHEN t.target BETWEEN 161 AND 170 THEN '161-170'
+        WHEN t.target BETWEEN 171 AND 180 THEN '171-180'
+        WHEN t.target BETWEEN 181 AND 190 THEN '181-190'
+        WHEN t.target BETWEEN 191 AND 200 THEN '191-200'
+        WHEN t.target >= 201 THEN '200+'
+        ELSE '<140'
+    END AS target_bucket,
+    COUNT(*) AS matches,
+    100.0 * SUM(CASE WHEN m.winner = c.chasing_team THEN 1 ELSE 0 END) / NULLIF(COUNT(*), 0) AS chase_success_rate
+FROM targets t
+JOIN chasing c ON c.match_id = t.match_id
+JOIN matches m ON m.match_id = t.match_id
+GROUP BY target_bucket
+ORDER BY target_bucket;
+
+-- name: Toss Decision Trend by Season
+-- Business question: How often do toss winners choose to field first?
+SELECT
+    season,
+    COUNT(*) AS matches,
+    100.0 * SUM(CASE WHEN lower(toss_decision) = 'field' THEN 1 ELSE 0 END) / NULLIF(COUNT(*), 0) AS field_first_pct
+FROM matches
+GROUP BY season
+ORDER BY season;
+
+-- name: Powerplay Score Distribution (Wins vs Losses)
+-- Business question: Powerplay runs for winning vs losing teams by season.
+WITH powerplay AS (
+    SELECT
+        match_id,
+        season,
+        batting_team,
+        inning,
+        SUM(total_runs) AS powerplay_runs,
+        MAX(match_winner) AS match_winner
+    FROM deliveries
+    WHERE over BETWEEN 1 AND 6
+    GROUP BY match_id, season, batting_team, inning
+), outcome AS (
+    SELECT
+        match_id,
+        season,
+        batting_team,
+        powerplay_runs,
+        CASE WHEN batting_team = match_winner THEN 'win' ELSE 'loss' END AS outcome
+    FROM powerplay
+)
+SELECT
+    season,
+    outcome,
+    AVG(powerplay_runs) AS avg_powerplay_runs,
+    MIN(powerplay_runs) AS min_powerplay_runs,
+    MAX(powerplay_runs) AS max_powerplay_runs,
+    sqrt(
+        AVG(powerplay_runs * powerplay_runs) - AVG(powerplay_runs) * AVG(powerplay_runs)
+    ) AS stddev_powerplay_runs,
+    COUNT(*) AS innings
+FROM outcome
+GROUP BY season, outcome
+ORDER BY season, outcome;
+
+-- name: Over-by-Over Run Rate Pattern
+-- Business question: How do winning vs losing teams score across overs 1-20?
+WITH over_runs AS (
+    SELECT
+        match_id,
+        season,
+        over,
+        batting_team,
+        SUM(total_runs) AS runs_in_over,
+        MAX(match_winner) AS match_winner
+    FROM deliveries
+    GROUP BY match_id, season, over, batting_team
+), outcome AS (
+    SELECT
+        season,
+        over,
+        runs_in_over,
+        CASE WHEN batting_team = match_winner THEN 'win' ELSE 'loss' END AS outcome
+    FROM over_runs
+)
+SELECT
+    over,
+    outcome,
+    AVG(runs_in_over) AS avg_runs_per_over,
+    COUNT(*) AS overs
+FROM outcome
+GROUP BY over, outcome
+ORDER BY over, outcome;
+
+-- name: Upset Analysis
+-- Business question: When do lower-ranked teams upset higher-ranked ones?
+WITH team_matches AS (
+    SELECT match_id, season, team1 AS team, CASE WHEN team1 = winner THEN 1 ELSE 0 END AS win
+    FROM matches
+    UNION ALL
+    SELECT match_id, season, team2 AS team, CASE WHEN team2 = winner THEN 1 ELSE 0 END AS win
+    FROM matches
+), season_win_pct AS (
+    SELECT team, season, COUNT(*) AS matches, SUM(win) AS wins,
+           100.0 * SUM(win) / NULLIF(COUNT(*), 0) AS win_pct
+    FROM team_matches
+    GROUP BY team, season
+), base AS (
+    SELECT
+        match_id,
+        season,
+        team1,
+        team2,
+        winner,
+        venue,
+        toss_winner,
+        toss_decision,
+        result_margin,
+        CASE
+            WHEN lower(toss_decision) = 'bat' THEN toss_winner
+            WHEN lower(toss_decision) = 'field' THEN CASE WHEN toss_winner = team1 THEN team2 ELSE team1 END
+            ELSE NULL
+        END AS batting_first
+    FROM matches
+    WHERE winner IS NOT NULL AND winner <> 'No Result'
+), ranked AS (
+    SELECT
+        b.*,
+        w1.win_pct AS team1_win_pct,
+        w2.win_pct AS team2_win_pct,
+        CASE WHEN b.winner = b.team1 THEN w1.win_pct ELSE w2.win_pct END AS winner_win_pct,
+        CASE WHEN b.winner = b.team1 THEN w2.win_pct ELSE w1.win_pct END AS loser_win_pct
+    FROM base b
+    LEFT JOIN season_win_pct w1 ON w1.team = b.team1 AND w1.season = b.season
+    LEFT JOIN season_win_pct w2 ON w2.team = b.team2 AND w2.season = b.season
+)
+SELECT
+    match_id,
+    season,
+    team1,
+    team2,
+    winner,
+    winner_win_pct,
+    loser_win_pct,
+    venue,
+    toss_winner,
+    toss_decision,
+    batting_first,
+    result_margin
+FROM ranked
+WHERE winner_win_pct IS NOT NULL
+  AND loser_win_pct IS NOT NULL
+  AND winner_win_pct < loser_win_pct
+ORDER BY (loser_win_pct - winner_win_pct) DESC, season DESC;
+
+-- name: Head-to-Head Win Matrix
+-- Business question: How do teams perform against each opponent all time?
+WITH team_matches AS (
+    SELECT match_id, team1 AS team_a, team2 AS team_b, winner
+    FROM matches
+    UNION ALL
+    SELECT match_id, team2 AS team_a, team1 AS team_b, winner
+    FROM matches
+)
+SELECT
+    team_a,
+    team_b,
+    COUNT(*) AS matches,
+    SUM(CASE WHEN team_a = winner THEN 1 ELSE 0 END) AS team_a_wins,
+    100.0 * SUM(CASE WHEN team_a = winner THEN 1 ELSE 0 END) / NULLIF(COUNT(*), 0) AS team_a_win_pct
+FROM team_matches
+WHERE team_a <> team_b
+GROUP BY team_a, team_b
+ORDER BY team_a, team_b;
