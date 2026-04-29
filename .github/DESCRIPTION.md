@@ -1,0 +1,1 @@
+IPL analytics project (2008-2024) combining SQL window functions, Python EDA, and an interactive Streamlit dashboard. Built on ball-by-ball data with advanced visuals and an ML win probability model for strategy, player insights, and match outcome analysis.
